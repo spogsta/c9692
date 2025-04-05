@@ -120,7 +120,16 @@ namespace c9692
 
         private void buttonCustomerAppointment_Click(object sender, EventArgs e)
         {
-            // Customer Appointment button click logic
+            if (dataGridViewCustomers.SelectedRows.Count > 0)
+            {
+                int selectedCustomerId = Convert.ToInt32(dataGridViewCustomers.SelectedRows[0].Cells["customerId"].Value);
+                AddAppointmentForm addAppointmentForm = new AddAppointmentForm(selectedCustomerId);
+                addAppointmentForm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Please select a customer to add an appointment.");
+            }
         }
     }
 }

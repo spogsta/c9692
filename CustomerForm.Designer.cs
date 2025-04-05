@@ -67,9 +67,9 @@ namespace c9692
             // 
             this.buttonCustomerAppointment.Location = new System.Drawing.Point(361, 414);
             this.buttonCustomerAppointment.Name = "buttonCustomerAppointment";
-            this.buttonCustomerAppointment.Size = new System.Drawing.Size(150, 23);
+            this.buttonCustomerAppointment.Size = new System.Drawing.Size(200, 23);
             this.buttonCustomerAppointment.TabIndex = 5;
-            this.buttonCustomerAppointment.Text = "Customer Appointment";
+            this.buttonCustomerAppointment.Text = "Add Customer Appointment";
             this.buttonCustomerAppointment.UseVisualStyleBackColor = true;
             this.buttonCustomerAppointment.Click += new System.EventHandler(this.buttonCustomerAppointment_Click);
             // 
