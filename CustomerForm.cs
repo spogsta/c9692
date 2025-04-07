@@ -1,6 +1,9 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 namespace c9692
@@ -130,6 +133,153 @@ namespace c9692
             {
                 MessageBox.Show("Please select a customer to add an appointment.");
             }
+        }
+
+        private void buttonGenerateReports_Click(object sender, EventArgs e)
+        {
+            var appointmentTypesByMonth = GetAppointmentTypesByMonth();
+            var userSchedules = GetUserSchedules();
+            var appointmentsPerCustomer = GetAppointmentsPerCustomer();
+
+            StringBuilder reportBuilder = new StringBuilder();
+
+            reportBuilder.AppendLine("Appointment Types by Month:");
+            foreach (var item in appointmentTypesByMonth)
+            {
+                reportBuilder.AppendLine($"{item.Key}: {item.Value}");
+            }
+
+            reportBuilder.AppendLine("\nUser Schedules:");
+            foreach (var user in userSchedules)
+            {
+                reportBuilder.AppendLine($"{user.Key}:");
+                foreach (var appointment in user.Value)
+                {
+                    reportBuilder.AppendLine($"  {appointment}");
+                }
+            }
+
+            reportBuilder.AppendLine("\nAppointments per Customer:");
+            foreach (var item in appointmentsPerCustomer)
+            {
+                reportBuilder.AppendLine($"{item.Key}: {item.Value}");
+            }
+
+            MessageBox.Show(reportBuilder.ToString(), "Generated Reports", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private Dictionary<string, int> GetAppointmentTypesByMonth()
+        {
+            var appointmentTypesByMonth = new Dictionary<string, int>();
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                string query = @"
+                    SELECT 
+                        MONTHNAME(start) AS Month, 
+                        type, 
+                        COUNT(*) AS Count
+                    FROM 
+                        appointment
+                    GROUP BY 
+                        Month, type";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string month = reader["Month"].ToString();
+                        string type = reader["type"].ToString();
+                        int count = Convert.ToInt32(reader["Count"]);
+
+                        string key = $"{month} - {type}";
+                        appointmentTypesByMonth[key] = count;
+                    }
+                }
+            }
+
+            return appointmentTypesByMonth;
+        }
+
+        private Dictionary<string, List<string>> GetUserSchedules()
+        {
+            var userSchedules = new Dictionary<string, List<string>>();
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                string query = @"
+                    SELECT 
+                        u.userName, 
+                        a.title, 
+                        a.start, 
+                        a.end
+                    FROM 
+                        appointment a
+                    JOIN 
+                        user u ON a.userId = u.userId
+                    ORDER BY 
+                        u.userName, a.start";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string userName = reader["userName"].ToString();
+                        string title = reader["title"].ToString();
+                        DateTime start = Convert.ToDateTime(reader["start"]);
+                        DateTime end = Convert.ToDateTime(reader["end"]);
+
+                        string appointmentDetails = $"{title}: {start} - {end}";
+
+                        if (!userSchedules.ContainsKey(userName))
+                        {
+                            userSchedules[userName] = new List<string>();
+                        }
+
+                        userSchedules[userName].Add(appointmentDetails);
+                    }
+                }
+            }
+
+            return userSchedules;
+        }
+
+        private Dictionary<string, int> GetAppointmentsPerCustomer()
+        {
+            var appointmentsPerCustomer = new Dictionary<string, int>();
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                string query = @"
+                    SELECT 
+                        c.customerName, 
+                        COUNT(*) AS Count
+                    FROM 
+                        appointment a
+                    JOIN 
+                        customer c ON a.customerId = c.customerId
+                    GROUP BY 
+                        c.customerName";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string customerName = reader["customerName"].ToString();
+                        int count = Convert.ToInt32(reader["Count"]);
+
+                        appointmentsPerCustomer[customerName] = count;
+                    }
+                }
+            }
+
+            return appointmentsPerCustomer;
         }
     }
 }

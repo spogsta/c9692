@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace c9692
@@ -61,6 +62,27 @@ namespace c9692
 
         private void buttonSave_Click(object sender, EventArgs e)
         {
+            string name = textBoxName.Text.Trim();
+            string phone = textBoxPhone.Text.Trim();
+            string address = textBoxAddress.Text.Trim();
+            string address2 = textBoxAddress2.Text.Trim();
+            string postalCode = textBoxPostalCode.Text.Trim();
+            string city = textBoxCity.Text.Trim();
+            string country = textBoxCountry.Text.Trim();
+
+            // Validate fields
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(address))
+            {
+                MessageBox.Show("Name, phone, and address fields cannot be empty.");
+                return;
+            }
+
+            if (!Regex.IsMatch(phone, @"^[\d-]+$"))
+            {
+                MessageBox.Show("Phone number can only contain digits and dashes.");
+                return;
+            }
+
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
@@ -81,17 +103,17 @@ namespace c9692
                             c.customerId = @customerId";
 
                     MySqlCommand addressCmd = new MySqlCommand(addressQuery, conn, transaction);
-                    addressCmd.Parameters.AddWithValue("@address", textBoxAddress.Text);
-                    addressCmd.Parameters.AddWithValue("@address2", textBoxAddress2.Text);
-                    addressCmd.Parameters.AddWithValue("@postalCode", textBoxPostalCode.Text);
-                    addressCmd.Parameters.AddWithValue("@phone", textBoxPhone.Text);
+                    addressCmd.Parameters.AddWithValue("@address", address);
+                    addressCmd.Parameters.AddWithValue("@address2", address2);
+                    addressCmd.Parameters.AddWithValue("@postalCode", postalCode);
+                    addressCmd.Parameters.AddWithValue("@phone", phone);
                     addressCmd.Parameters.AddWithValue("@customerId", customerId);
                     addressCmd.ExecuteNonQuery();
 
                     // Update customer table
                     string customerQuery = "UPDATE customer SET customerName = @name WHERE customerId = @customerId";
                     MySqlCommand customerCmd = new MySqlCommand(customerQuery, conn, transaction);
-                    customerCmd.Parameters.AddWithValue("@name", textBoxName.Text);
+                    customerCmd.Parameters.AddWithValue("@name", name);
                     customerCmd.Parameters.AddWithValue("@customerId", customerId);
                     customerCmd.ExecuteNonQuery();
 

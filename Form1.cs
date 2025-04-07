@@ -1,5 +1,7 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Configuration;
@@ -9,6 +11,7 @@ namespace c9692
     public partial class Form1 : Form
     {
         private string userLocation;
+        private string connectionString = "Server=localhost;Database=client_schedule;User Id=sqlUser;Password=Passw0rd!;Port=3306;";
 
         public Form1()
         {
@@ -45,6 +48,8 @@ namespace c9692
             if (username == "test" && password == "test")
             {
                 labelMessage.Text = TranslateMessage("Login successful.");
+                LogLogin(username);
+                CheckForUpcomingAppointments(1); // Assuming userId is 1 for now
                 CustomerForm customerForm = new CustomerForm();
                 customerForm.Show();
             }
@@ -66,6 +71,59 @@ namespace c9692
                 translatedMessage += "\nEl nombre de usuario y la contraseña no coinciden.";
             }
             return translatedMessage;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void CheckForUpcomingAppointments(int userId)
+        {
+            DateTime currentTimeUtc = DateTime.UtcNow;
+            DateTime fifteenMinutesLaterUtc = currentTimeUtc.AddMinutes(15);
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                string query = @"
+                    SELECT 
+                        title, start
+                    FROM 
+                        appointment
+                    WHERE 
+                        userId = @userId
+                        AND start BETWEEN @currentTimeUtc AND @fifteenMinutesLaterUtc";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@userId", userId);
+                cmd.Parameters.AddWithValue("@currentTimeUtc", currentTimeUtc);
+                cmd.Parameters.AddWithValue("@fifteenMinutesLaterUtc", fifteenMinutesLaterUtc);
+
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        string title = reader["title"].ToString();
+                        DateTime start = Convert.ToDateTime(reader["start"]);
+                        TimeZoneInfo userTimeZone = TimeZoneInfo.Local;
+                        DateTime localStart = TimeZoneInfo.ConvertTimeFromUtc(start, userTimeZone);
+
+                        MessageBox.Show($"You have an upcoming appointment '{title}' at {localStart}.", "Upcoming Appointment Alert", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+        }
+
+        private void LogLogin(string username)
+        {
+            string logFilePath = "Login_History.txt";
+            string logEntry = $"{DateTime.Now}: {username}";
+
+            using (StreamWriter writer = new StreamWriter(logFilePath, true))
+            {
+                writer.WriteLine(logEntry);
+            }
         }
     }
 }

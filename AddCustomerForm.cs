@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace c9692
@@ -14,13 +15,26 @@ namespace c9692
         private void buttonSave_Click(object sender, EventArgs e)
         {
             string connectionString = "Server=localhost;Database=client_schedule;User Id=sqlUser;Password=Passw0rd!;Port=3306;";
-            string name = textBoxName.Text;
-            string phone = textBoxPhone.Text;
-            string address = textBoxAddress.Text;
-            string address2 = textBoxAddress2.Text;
-            string postalCode = textBoxPostalCode.Text; // Added postalCode
-            string country = textBoxCountry.Text;
-            string city = textBoxCity.Text;
+            string name = textBoxName.Text.Trim();
+            string phone = textBoxPhone.Text.Trim();
+            string address = textBoxAddress.Text.Trim();
+            string address2 = textBoxAddress2.Text.Trim();
+            string postalCode = textBoxPostalCode.Text.Trim();
+            string country = textBoxCountry.Text.Trim();
+            string city = textBoxCity.Text.Trim();
+
+            // Validate fields
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(address))
+            {
+                MessageBox.Show("Name, phone, and address fields cannot be empty.");
+                return;
+            }
+
+            if (!Regex.IsMatch(phone, @"^[\d-]+$"))
+            {
+                MessageBox.Show("Phone number can only contain digits and dashes.");
+                return;
+            }
 
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
@@ -63,7 +77,7 @@ namespace c9692
                     MySqlCommand addressCmd = new MySqlCommand(addressQuery, conn, transaction);
                     addressCmd.Parameters.AddWithValue("@address", address);
                     addressCmd.Parameters.AddWithValue("@address2", address2);
-                    addressCmd.Parameters.AddWithValue("@postalCode", postalCode); // Added postalCode parameter
+                    addressCmd.Parameters.AddWithValue("@postalCode", postalCode);
                     addressCmd.Parameters.AddWithValue("@phone", phone);
                     addressCmd.Parameters.AddWithValue("@cityId", cityId);
                     addressCmd.ExecuteNonQuery();

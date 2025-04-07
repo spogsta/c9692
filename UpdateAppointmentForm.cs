@@ -22,12 +22,12 @@ namespace c9692
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 string query = @"
-                    SELECT 
-                        title, description, location, contact, type, url, start, end
-                    FROM 
-                        appointment
-                    WHERE 
-                        appointmentId = @appointmentId";
+            SELECT 
+                title, description, location, contact, type, url, start, end
+            FROM 
+                appointment
+            WHERE 
+                appointmentId = @appointmentId";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
@@ -43,8 +43,14 @@ namespace c9692
                         textBoxContact.Text = reader["contact"].ToString();
                         textBoxType.Text = reader["type"].ToString();
                         textBoxUrl.Text = reader["url"].ToString();
-                        dateTimePickerStart.Value = Convert.ToDateTime(reader["start"]);
-                        dateTimePickerEnd.Value = Convert.ToDateTime(reader["end"]);
+
+                        // Convert appointment times from UTC to local time zone
+                        DateTime utcStart = Convert.ToDateTime(reader["start"]);
+                        DateTime utcEnd = Convert.ToDateTime(reader["end"]);
+                        TimeZoneInfo userTimeZone = TimeZoneInfo.Local;
+                        dateTimePickerStart.Value = TimeZoneInfo.ConvertTimeFromUtc(utcStart, userTimeZone);
+                        dateTimePickerEnd.Value = TimeZoneInfo.ConvertTimeFromUtc(utcEnd, userTimeZone);
+
                         numericUpDownStartHour.Value = dateTimePickerStart.Value.Hour;
                         numericUpDownStartMinute.Value = dateTimePickerStart.Value.Minute;
                         numericUpDownEndHour.Value = dateTimePickerEnd.Value.Hour;
@@ -56,27 +62,32 @@ namespace c9692
 
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            DateTime start = dateTimePickerStart.Value.Date.AddHours((double)numericUpDownStartHour.Value).AddMinutes((double)numericUpDownStartMinute.Value);
-            DateTime end = dateTimePickerEnd.Value.Date.AddHours((double)numericUpDownEndHour.Value).AddMinutes((double)numericUpDownEndMinute.Value);
+            DateTime localStart = dateTimePickerStart.Value.Date.AddHours((double)numericUpDownStartHour.Value).AddMinutes((double)numericUpDownStartMinute.Value);
+            DateTime localEnd = dateTimePickerEnd.Value.Date.AddHours((double)numericUpDownEndHour.Value).AddMinutes((double)numericUpDownEndMinute.Value);
 
-            if (!IsWithinBusinessHours(start) || !IsWithinBusinessHours(end))
+            if (!IsWithinBusinessHours(localStart) || !IsWithinBusinessHours(localEnd))
             {
                 MessageBox.Show("Appointments must be scheduled during business hours (9:00 a.m. to 5:00 p.m., Monday–Friday, EST).");
                 return;
             }
 
-            if (IsOverlappingAppointment(start, end))
+            if (IsOverlappingAppointment(localStart, localEnd))
             {
                 MessageBox.Show("The appointment overlaps with an existing appointment.");
                 return;
             }
 
+            // Convert appointment times from local time zone to UTC before saving
+            TimeZoneInfo userTimeZone = TimeZoneInfo.Local;
+            DateTime utcStart = TimeZoneInfo.ConvertTimeToUtc(localStart, userTimeZone);
+            DateTime utcEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, userTimeZone);
+
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 string query = @"
-                    UPDATE appointment
-                    SET title = @title, description = @description, location = @location, contact = @contact, type = @type, url = @url, start = @start, end = @end, lastUpdate = NOW(), lastUpdateBy = @lastUpdateBy
-                    WHERE appointmentId = @appointmentId";
+            UPDATE appointment
+            SET title = @title, description = @description, location = @location, contact = @contact, type = @type, url = @url, start = @start, end = @end, lastUpdate = NOW(), lastUpdateBy = @lastUpdateBy
+            WHERE appointmentId = @appointmentId";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@title", textBoxTitle.Text);
@@ -85,8 +96,8 @@ namespace c9692
                 cmd.Parameters.AddWithValue("@contact", textBoxContact.Text);
                 cmd.Parameters.AddWithValue("@type", textBoxType.Text);
                 cmd.Parameters.AddWithValue("@url", textBoxUrl.Text);
-                cmd.Parameters.AddWithValue("@start", start);
-                cmd.Parameters.AddWithValue("@end", end);
+                cmd.Parameters.AddWithValue("@start", utcStart);
+                cmd.Parameters.AddWithValue("@end", utcEnd);
                 cmd.Parameters.AddWithValue("@lastUpdateBy", "admin"); // Assuming lastUpdateBy is "admin" for now
                 cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
 
@@ -96,6 +107,7 @@ namespace c9692
                 this.Close();
             }
         }
+        
 
         private bool IsWithinBusinessHours(DateTime dateTime)
         {

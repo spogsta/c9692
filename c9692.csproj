@@ -151,6 +151,9 @@
     <EmbeddedResource Include="AddAppointmentForm.resx">
       <DependentUpon>AddAppointmentForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="AddCustomerForm.resx">
+      <DependentUpon>AddCustomerForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AppointmentForm.resx">
       <DependentUpon>AppointmentForm.cs</DependentUpon>
     </EmbeddedResource>

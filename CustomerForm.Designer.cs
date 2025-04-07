@@ -10,8 +10,9 @@ namespace c9692
             this.buttonAdd = new System.Windows.Forms.Button();
             this.buttonUpdate = new System.Windows.Forms.Button();
             this.buttonDelete = new System.Windows.Forms.Button();
-            this.buttonAppointment = new System.Windows.Forms.Button(); // Add this line
-            this.buttonCustomerAppointment = new System.Windows.Forms.Button(); // Add this line
+            this.buttonAppointment = new System.Windows.Forms.Button();
+            this.buttonCustomerAppointment = new System.Windows.Forms.Button();
+            this.buttonGenerateReports = new System.Windows.Forms.Button(); // Add this line
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewCustomers)).BeginInit();
             this.SuspendLayout();
             // 
@@ -73,9 +74,20 @@ namespace c9692
             this.buttonCustomerAppointment.UseVisualStyleBackColor = true;
             this.buttonCustomerAppointment.Click += new System.EventHandler(this.buttonCustomerAppointment_Click);
             // 
+            // buttonGenerateReports
+            // 
+            this.buttonGenerateReports.Location = new System.Drawing.Point(567, 414);
+            this.buttonGenerateReports.Name = "buttonGenerateReports";
+            this.buttonGenerateReports.Size = new System.Drawing.Size(150, 23);
+            this.buttonGenerateReports.TabIndex = 6;
+            this.buttonGenerateReports.Text = "Generate Reports";
+            this.buttonGenerateReports.UseVisualStyleBackColor = true;
+            this.buttonGenerateReports.Click += new System.EventHandler(this.buttonGenerateReports_Click);
+            // 
             // CustomerForm
             // 
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.buttonGenerateReports);
             this.Controls.Add(this.buttonCustomerAppointment);
             this.Controls.Add(this.buttonAppointment);
             this.Controls.Add(this.buttonDelete);
@@ -92,7 +104,8 @@ namespace c9692
         private System.Windows.Forms.Button buttonAdd;
         private System.Windows.Forms.Button buttonUpdate;
         private System.Windows.Forms.Button buttonDelete;
-        private System.Windows.Forms.Button buttonAppointment; // Add this line
-        private System.Windows.Forms.Button buttonCustomerAppointment; // Add this line
+        private System.Windows.Forms.Button buttonAppointment;
+        private System.Windows.Forms.Button buttonCustomerAppointment;
+        private System.Windows.Forms.Button buttonGenerateReports; // Add this line
     }
 }
