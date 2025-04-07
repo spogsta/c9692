@@ -2,7 +2,7 @@
 
 namespace c9692
 {
-    public partial class AddAppointmentForm : Form
+    public partial class UpdateAppointmentForm : Form
     {
         private void InitializeComponent()
         {
@@ -88,7 +88,7 @@ namespace c9692
             // 
             // dateTimePickerEnd
             // 
-            this.dateTimePickerEnd.Location = new System.Drawing.Point(120, 208);
+            this.dateTimePickerEnd.Location = new System.Drawing.Point(120, 205);
             this.dateTimePickerEnd.Name = "dateTimePickerEnd";
             this.dateTimePickerEnd.Size = new System.Drawing.Size(200, 22);
             this.dateTimePickerEnd.TabIndex = 7;
@@ -119,7 +119,7 @@ namespace c9692
             // 
             // numericUpDownEndHour
             // 
-            this.numericUpDownEndHour.Location = new System.Drawing.Point(330, 208);
+            this.numericUpDownEndHour.Location = new System.Drawing.Point(330, 205);
             this.numericUpDownEndHour.Maximum = new decimal(new int[] {
             23,
             0,
@@ -131,7 +131,7 @@ namespace c9692
             // 
             // numericUpDownEndMinute
             // 
-            this.numericUpDownEndMinute.Location = new System.Drawing.Point(380, 208);
+            this.numericUpDownEndMinute.Location = new System.Drawing.Point(380, 205);
             this.numericUpDownEndMinute.Maximum = new decimal(new int[] {
             59,
             0,
@@ -143,7 +143,7 @@ namespace c9692
             // 
             // buttonSave
             // 
-            this.buttonSave.Location = new System.Drawing.Point(120, 234);
+            this.buttonSave.Location = new System.Drawing.Point(120, 231);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(75, 23);
             this.buttonSave.TabIndex = 12;
@@ -217,7 +217,7 @@ namespace c9692
             // labelEnd
             // 
             this.labelEnd.AutoSize = true;
-            this.labelEnd.Location = new System.Drawing.Point(12, 208);
+            this.labelEnd.Location = new System.Drawing.Point(12, 211);
             this.labelEnd.Name = "labelEnd";
             this.labelEnd.Size = new System.Drawing.Size(31, 16);
             this.labelEnd.TabIndex = 20;
@@ -244,7 +244,7 @@ namespace c9692
             // labelEndHour
             // 
             this.labelEndHour.AutoSize = true;
-            this.labelEndHour.Location = new System.Drawing.Point(330, 237);
+            this.labelEndHour.Location = new System.Drawing.Point(330, 230);
             this.labelEndHour.Name = "labelEndHour";
             this.labelEndHour.Size = new System.Drawing.Size(36, 16);
             this.labelEndHour.TabIndex = 23;
@@ -253,15 +253,15 @@ namespace c9692
             // labelEndMinute
             // 
             this.labelEndMinute.AutoSize = true;
-            this.labelEndMinute.Location = new System.Drawing.Point(377, 237);
+            this.labelEndMinute.Location = new System.Drawing.Point(376, 230);
             this.labelEndMinute.Name = "labelEndMinute";
             this.labelEndMinute.Size = new System.Drawing.Size(46, 16);
             this.labelEndMinute.TabIndex = 24;
             this.labelEndMinute.Text = "Minute";
             // 
-            // AddAppointmentForm
+            // UpdateAppointmentForm
             // 
-            this.ClientSize = new System.Drawing.Size(441, 270);
+            this.ClientSize = new System.Drawing.Size(434, 261);
             this.Controls.Add(this.labelEndMinute);
             this.Controls.Add(this.labelEndHour);
             this.Controls.Add(this.labelStartMinute);
@@ -287,9 +287,8 @@ namespace c9692
             this.Controls.Add(this.textBoxLocation);
             this.Controls.Add(this.textBoxDescription);
             this.Controls.Add(this.textBoxTitle);
-            this.Name = "AddAppointmentForm";
-            this.Text = "Add Appointment";
-            this.Load += new System.EventHandler(this.AddAppointmentForm_Load);
+            this.Name = "UpdateAppointmentForm";
+            this.Text = "Update Appointment";
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownStartHour)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownStartMinute)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEndHour)).EndInit();

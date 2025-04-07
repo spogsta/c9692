@@ -5,15 +5,53 @@ using System.Windows.Forms;
 
 namespace c9692
 {
-    public partial class AddAppointmentForm : Form
+    public partial class UpdateAppointmentForm : Form
     {
-        private int customerId;
+        private int appointmentId;
         private string connectionString = "Server=localhost;Database=client_schedule;User Id=sqlUser;Password=Passw0rd!;Port=3306;";
 
-        public AddAppointmentForm(int customerId)
+        public UpdateAppointmentForm(int appointmentId)
         {
             InitializeComponent();
-            this.customerId = customerId;
+            this.appointmentId = appointmentId;
+            LoadAppointmentData();
+        }
+
+        private void LoadAppointmentData()
+        {
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                string query = @"
+                    SELECT 
+                        title, description, location, contact, type, url, start, end
+                    FROM 
+                        appointment
+                    WHERE 
+                        appointmentId = @appointmentId";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
+
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        textBoxTitle.Text = reader["title"].ToString();
+                        textBoxDescription.Text = reader["description"].ToString();
+                        textBoxLocation.Text = reader["location"].ToString();
+                        textBoxContact.Text = reader["contact"].ToString();
+                        textBoxType.Text = reader["type"].ToString();
+                        textBoxUrl.Text = reader["url"].ToString();
+                        dateTimePickerStart.Value = Convert.ToDateTime(reader["start"]);
+                        dateTimePickerEnd.Value = Convert.ToDateTime(reader["end"]);
+                        numericUpDownStartHour.Value = dateTimePickerStart.Value.Hour;
+                        numericUpDownStartMinute.Value = dateTimePickerStart.Value.Minute;
+                        numericUpDownEndHour.Value = dateTimePickerEnd.Value.Hour;
+                        numericUpDownEndMinute.Value = dateTimePickerEnd.Value.Minute;
+                    }
+                }
+            }
         }
 
         private void buttonSave_Click(object sender, EventArgs e)
@@ -36,12 +74,11 @@ namespace c9692
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 string query = @"
-                    INSERT INTO appointment (customerId, userId, title, description, location, contact, type, url, start, end, createDate, createdBy, lastUpdate, lastUpdateBy)
-                    VALUES (@customerId, @userId, @title, @description, @location, @contact, @type, @url, @start, @end, NOW(), @createdBy, NOW(), @lastUpdateBy)";
+                    UPDATE appointment
+                    SET title = @title, description = @description, location = @location, contact = @contact, type = @type, url = @url, start = @start, end = @end, lastUpdate = NOW(), lastUpdateBy = @lastUpdateBy
+                    WHERE appointmentId = @appointmentId";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@customerId", customerId);
-                cmd.Parameters.AddWithValue("@userId", 1); // Assuming userId is 1 for now
                 cmd.Parameters.AddWithValue("@title", textBoxTitle.Text);
                 cmd.Parameters.AddWithValue("@description", textBoxDescription.Text);
                 cmd.Parameters.AddWithValue("@location", textBoxLocation.Text);
@@ -50,12 +87,12 @@ namespace c9692
                 cmd.Parameters.AddWithValue("@url", textBoxUrl.Text);
                 cmd.Parameters.AddWithValue("@start", start);
                 cmd.Parameters.AddWithValue("@end", end);
-                cmd.Parameters.AddWithValue("@createdBy", "admin"); // Assuming createdBy is "admin" for now
                 cmd.Parameters.AddWithValue("@lastUpdateBy", "admin"); // Assuming lastUpdateBy is "admin" for now
+                cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
-                MessageBox.Show("Appointment added successfully!");
+                MessageBox.Show("Appointment updated successfully!");
                 this.Close();
             }
         }
@@ -83,11 +120,11 @@ namespace c9692
                 string query = @"
                     SELECT COUNT(*)
                     FROM appointment
-                    WHERE customerId = @customerId
+                    WHERE appointmentId != @appointmentId
                     AND ((@start >= start AND @start < end) OR (@end > start AND @end <= end) OR (@start < start AND @end > end))";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@customerId", customerId);
+                cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
                 cmd.Parameters.AddWithValue("@start", start);
                 cmd.Parameters.AddWithValue("@end", end);
 
@@ -95,11 +132,6 @@ namespace c9692
                 int count = Convert.ToInt32(cmd.ExecuteScalar());
                 return count > 0;
             }
-        }
-
-        private void AddAppointmentForm_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }
