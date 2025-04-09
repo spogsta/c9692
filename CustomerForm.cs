@@ -131,7 +131,7 @@ namespace c9692
             }
             else
             {
-                MessageBox.Show("Please select a customer to add an appointment.");
+                MessageBox.Show("Please select a customer first.", "No Customer Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

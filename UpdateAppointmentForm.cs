@@ -10,6 +10,9 @@ namespace c9692
         private int appointmentId;
         private string connectionString = "Server=localhost;Database=client_schedule;User Id=sqlUser;Password=Passw0rd!;Port=3306;";
 
+        // Event to notify when an appointment is updated
+        public event Action AppointmentUpdated;
+
         public UpdateAppointmentForm(int appointmentId)
         {
             InitializeComponent();
@@ -104,10 +107,13 @@ namespace c9692
                 conn.Open();
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Appointment updated successfully!");
+
+                // Notify that the appointment was updated
+                AppointmentUpdated?.Invoke();
+
                 this.Close();
             }
         }
-        
 
         private bool IsWithinBusinessHours(DateTime dateTime)
         {

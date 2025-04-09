@@ -52,6 +52,8 @@ namespace c9692
                     adapter.SelectCommand.Parameters.AddWithValue("@date", date.Date);
                     DataTable dataTable = new DataTable();
                     adapter.Fill(dataTable);
+
+                    // No conversion to local time; keep times in UTC
                     dataGridViewAppointments.DataSource = dataTable;
                 }
             }

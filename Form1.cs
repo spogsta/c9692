@@ -24,17 +24,29 @@ namespace c9692
             var region = RegionInfo.CurrentRegion;
             userLocation = region.DisplayName;
 
-            if (region.TwoLetterISORegionName == "US")
+            switch (region.TwoLetterISORegionName)
             {
-                Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
-            }
-            else if (region.TwoLetterISORegionName == "GB")
-            {
-                Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-GB");
-            }
-            else
-            {
-                Thread.CurrentThread.CurrentUICulture = new CultureInfo("es-ES"); // Example for Spanish
+                case "US":
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+                    break;
+                case "GB":
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-GB");
+                    break;
+                case "IN": // India
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("hi-IN");
+                    break;
+                case "FR": // France
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("fr-FR");
+                    break;
+                case "CN": // China
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+                    break;
+                case "ID": // Indonesia
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("id-ID");
+                    break;
+                default:
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("es-ES"); // Default to Spanish
+                    break;
             }
 
             labelLocation.Text = $"You're country is: {userLocation}.";
@@ -61,16 +73,48 @@ namespace c9692
 
         private string TranslateMessage(string message)
         {
-            string translatedMessage = message;
-            if (message == "Login successful.")
+            switch (Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName)
             {
-                translatedMessage += "\nInicio de sesión exitoso.";
+                case "hi": // Hindi (India)
+                    if (message == "Login successful.")
+                        return "लॉगिन सफल।";
+                    else if (message == "The username and password do not match.")
+                        return "उपयोगकर्ता नाम और पासवर्ड मेल नहीं खाते।";
+                    break;
+
+                case "fr": // French (France)
+                    if (message == "Login successful.")
+                        return "Connexion réussie.";
+                    else if (message == "The username and password do not match.")
+                        return "Le nom d'utilisateur et le mot de passe ne correspondent pas.";
+                    break;
+
+                case "zh": // Chinese (China)
+                    if (message == "Login successful.")
+                        return "登录成功。";
+                    else if (message == "The username and password do not match.")
+                        return "用户名和密码不匹配。";
+                    break;
+
+                case "id": // Indonesian (Indonesia)
+                    if (message == "Login successful.")
+                        return "Login berhasil.";
+                    else if (message == "The username and password do not match.")
+                        return "Nama pengguna dan kata sandi tidak cocok.";
+                    break;
+
+                case "es": // Spanish
+                    if (message == "Login successful.")
+                        return "Inicio de sesión exitoso.";
+                    else if (message == "The username and password do not match.")
+                        return "El nombre de usuario y la contraseña no coinciden.";
+                    break;
+
+                case "en": // English
+                default:
+                    return message;
             }
-            else if (message == "The username and password do not match.")
-            {
-                translatedMessage += "\nEl nombre de usuario y la contraseña no coinciden.";
-            }
-            return translatedMessage;
+            return message; // Fallback to the original message
         }
 
         private void Form1_Load(object sender, EventArgs e)

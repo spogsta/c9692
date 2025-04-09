@@ -24,9 +24,10 @@ namespace c9692
             string city = textBoxCity.Text.Trim();
 
             // Validate fields
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(address))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(address) ||
+                string.IsNullOrEmpty(city) || string.IsNullOrEmpty(postalCode) || string.IsNullOrEmpty(country))
             {
-                MessageBox.Show("Name, phone, and address fields cannot be empty.");
+                MessageBox.Show("Name, phone, address, city, postal code, and country fields cannot be empty.");
                 return;
             }
 
@@ -43,35 +44,6 @@ namespace c9692
 
                 try
                 {
-                    // Ensure country exists and get countryId
-                    string countryQuery = "SELECT countryId FROM country WHERE country = @country";
-                    MySqlCommand countryCmd = new MySqlCommand(countryQuery, conn, transaction);
-                    countryCmd.Parameters.AddWithValue("@country", country);
-                    object countryIdObj = countryCmd.ExecuteScalar();
-
-                    int countryId;
-                    if (countryIdObj == null)
-                    {
-                        // Insert new country if it doesn't exist
-                        string insertCountryQuery = "INSERT INTO country (country, createDate, createdBy, lastUpdate, lastUpdateBy) VALUES (@country, NOW(), 'admin', NOW(), 'admin')";
-                        MySqlCommand insertCountryCmd = new MySqlCommand(insertCountryQuery, conn, transaction);
-                        insertCountryCmd.Parameters.AddWithValue("@country", country);
-                        insertCountryCmd.ExecuteNonQuery();
-                        countryId = (int)insertCountryCmd.LastInsertedId;
-                    }
-                    else
-                    {
-                        countryId = Convert.ToInt32(countryIdObj);
-                    }
-
-                    // Insert into city table
-                    string cityQuery = "INSERT INTO city (city, countryId, createDate, createdBy, lastUpdate, lastUpdateBy) VALUES (@city, @countryId, NOW(), 'admin', NOW(), 'admin')";
-                    MySqlCommand cityCmd = new MySqlCommand(cityQuery, conn, transaction);
-                    cityCmd.Parameters.AddWithValue("@city", city);
-                    cityCmd.Parameters.AddWithValue("@countryId", countryId);
-                    cityCmd.ExecuteNonQuery();
-                    int cityId = (int)cityCmd.LastInsertedId;
-
                     // Insert into address table
                     string addressQuery = "INSERT INTO address (address, address2, postalCode, phone, cityId, createDate, createdBy, lastUpdate, lastUpdateBy) VALUES (@address, @address2, @postalCode, @phone, @cityId, NOW(), 'admin', NOW(), 'admin')";
                     MySqlCommand addressCmd = new MySqlCommand(addressQuery, conn, transaction);
@@ -79,7 +51,7 @@ namespace c9692
                     addressCmd.Parameters.AddWithValue("@address2", address2);
                     addressCmd.Parameters.AddWithValue("@postalCode", postalCode);
                     addressCmd.Parameters.AddWithValue("@phone", phone);
-                    addressCmd.Parameters.AddWithValue("@cityId", cityId);
+                    addressCmd.Parameters.AddWithValue("@cityId", 1); // Default cityId for now
                     addressCmd.ExecuteNonQuery();
                     int addressId = (int)addressCmd.LastInsertedId;
 

@@ -71,9 +71,10 @@ namespace c9692
             string country = textBoxCountry.Text.Trim();
 
             // Validate fields
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(address))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(address) ||
+                string.IsNullOrEmpty(city) || string.IsNullOrEmpty(postalCode) || string.IsNullOrEmpty(country))
             {
-                MessageBox.Show("Name, phone, and address fields cannot be empty.");
+                MessageBox.Show("Name, phone, address, city, postal code, and country fields cannot be empty.");
                 return;
             }
 
@@ -90,6 +91,48 @@ namespace c9692
 
                 try
                 {
+                    // Ensure country exists and get countryId
+                    string countryQuery = "SELECT countryId FROM country WHERE country = @country";
+                    MySqlCommand countryCmd = new MySqlCommand(countryQuery, conn, transaction);
+                    countryCmd.Parameters.AddWithValue("@country", country);
+                    object countryIdObj = countryCmd.ExecuteScalar();
+
+                    int countryId;
+                    if (countryIdObj == null)
+                    {
+                        string insertCountryQuery = "INSERT INTO country (country, createDate, createdBy, lastUpdate, lastUpdateBy) VALUES (@country, NOW(), 'admin', NOW(), 'admin')";
+                        MySqlCommand insertCountryCmd = new MySqlCommand(insertCountryQuery, conn, transaction);
+                        insertCountryCmd.Parameters.AddWithValue("@country", country);
+                        insertCountryCmd.ExecuteNonQuery();
+                        countryId = (int)insertCountryCmd.LastInsertedId;
+                    }
+                    else
+                    {
+                        countryId = Convert.ToInt32(countryIdObj);
+                    }
+
+                    // Ensure city exists and get cityId
+                    string cityQuery = "SELECT cityId FROM city WHERE city = @city AND countryId = @countryId";
+                    MySqlCommand cityCmd = new MySqlCommand(cityQuery, conn, transaction);
+                    cityCmd.Parameters.AddWithValue("@city", city);
+                    cityCmd.Parameters.AddWithValue("@countryId", countryId);
+                    object cityIdObj = cityCmd.ExecuteScalar();
+
+                    int cityId;
+                    if (cityIdObj == null)
+                    {
+                        string insertCityQuery = "INSERT INTO city (city, countryId, createDate, createdBy, lastUpdate, lastUpdateBy) VALUES (@city, @countryId, NOW(), 'admin', NOW(), 'admin')";
+                        MySqlCommand insertCityCmd = new MySqlCommand(insertCityQuery, conn, transaction);
+                        insertCityCmd.Parameters.AddWithValue("@city", city);
+                        insertCityCmd.Parameters.AddWithValue("@countryId", countryId);
+                        insertCityCmd.ExecuteNonQuery();
+                        cityId = (int)insertCityCmd.LastInsertedId;
+                    }
+                    else
+                    {
+                        cityId = Convert.ToInt32(cityIdObj);
+                    }
+
                     // Update address table
                     string addressQuery = @"
                         UPDATE address a
@@ -98,7 +141,8 @@ namespace c9692
                             a.address = @address,
                             a.address2 = @address2,
                             a.postalCode = @postalCode,
-                            a.phone = @phone
+                            a.phone = @phone,
+                            a.cityId = @cityId
                         WHERE 
                             c.customerId = @customerId";
 
@@ -107,6 +151,7 @@ namespace c9692
                     addressCmd.Parameters.AddWithValue("@address2", address2);
                     addressCmd.Parameters.AddWithValue("@postalCode", postalCode);
                     addressCmd.Parameters.AddWithValue("@phone", phone);
+                    addressCmd.Parameters.AddWithValue("@cityId", cityId);
                     addressCmd.Parameters.AddWithValue("@customerId", customerId);
                     addressCmd.ExecuteNonQuery();
 
