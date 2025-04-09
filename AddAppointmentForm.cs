@@ -33,6 +33,11 @@ namespace c9692
                 return;
             }
 
+            if (!IsWithinBusinessHours(start) || !IsWithinBusinessHours(end))
+            {
+                MessageBox.Show("Appointments must be scheduled during business hours (9:00 a.m. to 5:00 p.m., Monday–Friday, EST).");
+                return;
+            }
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 string query = @"
@@ -75,7 +80,6 @@ namespace c9692
 
             return estDateTime.TimeOfDay >= startBusinessHours && estDateTime.TimeOfDay <= endBusinessHours;
         }
-
         private bool IsOverlappingAppointment(DateTime start, DateTime end)
         {
             using (MySqlConnection conn = new MySqlConnection(connectionString))

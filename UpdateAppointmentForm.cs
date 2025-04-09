@@ -25,12 +25,12 @@ namespace c9692
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 string query = @"
-            SELECT 
-                title, description, location, contact, type, url, start, end
-            FROM 
-                appointment
-            WHERE 
-                appointmentId = @appointmentId";
+                SELECT 
+                    title, description, location, contact, type, url, start, end
+                FROM 
+                    appointment
+                WHERE 
+                    appointmentId = @appointmentId";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
@@ -47,50 +47,47 @@ namespace c9692
                         textBoxType.Text = reader["type"].ToString();
                         textBoxUrl.Text = reader["url"].ToString();
 
-                        // Convert appointment times from UTC to local time zone
-                        DateTime utcStart = Convert.ToDateTime(reader["start"]);
-                        DateTime utcEnd = Convert.ToDateTime(reader["end"]);
-                        TimeZoneInfo userTimeZone = TimeZoneInfo.Local;
-                        dateTimePickerStart.Value = TimeZoneInfo.ConvertTimeFromUtc(utcStart, userTimeZone);
-                        dateTimePickerEnd.Value = TimeZoneInfo.ConvertTimeFromUtc(utcEnd, userTimeZone);
+                        // Directly set the DateTime values without timezone conversion
+                        DateTime start = Convert.ToDateTime(reader["start"]);
+                        DateTime end = Convert.ToDateTime(reader["end"]);
 
-                        numericUpDownStartHour.Value = dateTimePickerStart.Value.Hour;
-                        numericUpDownStartMinute.Value = dateTimePickerStart.Value.Minute;
-                        numericUpDownEndHour.Value = dateTimePickerEnd.Value.Hour;
-                        numericUpDownEndMinute.Value = dateTimePickerEnd.Value.Minute;
+                        dateTimePickerStart.Value = start;
+                        dateTimePickerEnd.Value = end;
+
+                        numericUpDownStartHour.Value = start.Hour;
+                        numericUpDownStartMinute.Value = start.Minute;
+                        numericUpDownEndHour.Value = end.Hour;
+                        numericUpDownEndMinute.Value = end.Minute;
                     }
                 }
             }
         }
-
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            DateTime localStart = dateTimePickerStart.Value.Date.AddHours((double)numericUpDownStartHour.Value).AddMinutes((double)numericUpDownStartMinute.Value);
-            DateTime localEnd = dateTimePickerEnd.Value.Date.AddHours((double)numericUpDownEndHour.Value).AddMinutes((double)numericUpDownEndMinute.Value);
+            // Get times directly from the controls
+            DateTime start = dateTimePickerStart.Value.Date.AddHours((double)numericUpDownStartHour.Value).AddMinutes((double)numericUpDownStartMinute.Value);
+            DateTime end = dateTimePickerEnd.Value.Date.AddHours((double)numericUpDownEndHour.Value).AddMinutes((double)numericUpDownEndMinute.Value);
 
-            if (!IsWithinBusinessHours(localStart) || !IsWithinBusinessHours(localEnd))
+            // Check if the appointment is within business hours
+            if (!IsWithinBusinessHours(start) || !IsWithinBusinessHours(end))
             {
                 MessageBox.Show("Appointments must be scheduled during business hours (9:00 a.m. to 5:00 p.m., Monday–Friday, EST).");
                 return;
             }
 
-            if (IsOverlappingAppointment(localStart, localEnd))
+            // Check if the appointment overlaps with an existing one
+            if (IsOverlappingAppointment(start, end))
             {
-                MessageBox.Show("The appointment overlaps with an existing appointment.");
+                MessageBox.Show("The appointment overlaps with an existing appointment. Please choose a different time.");
                 return;
             }
-
-            // Convert appointment times from local time zone to UTC before saving
-            TimeZoneInfo userTimeZone = TimeZoneInfo.Local;
-            DateTime utcStart = TimeZoneInfo.ConvertTimeToUtc(localStart, userTimeZone);
-            DateTime utcEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, userTimeZone);
 
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 string query = @"
-            UPDATE appointment
-            SET title = @title, description = @description, location = @location, contact = @contact, type = @type, url = @url, start = @start, end = @end, lastUpdate = NOW(), lastUpdateBy = @lastUpdateBy
-            WHERE appointmentId = @appointmentId";
+                UPDATE appointment
+                SET title = @title, description = @description, location = @location, contact = @contact, type = @type, url = @url, start = @start, end = @end, lastUpdate = NOW(), lastUpdateBy = @lastUpdateBy
+                WHERE appointmentId = @appointmentId";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@title", textBoxTitle.Text);
@@ -99,8 +96,8 @@ namespace c9692
                 cmd.Parameters.AddWithValue("@contact", textBoxContact.Text);
                 cmd.Parameters.AddWithValue("@type", textBoxType.Text);
                 cmd.Parameters.AddWithValue("@url", textBoxUrl.Text);
-                cmd.Parameters.AddWithValue("@start", utcStart);
-                cmd.Parameters.AddWithValue("@end", utcEnd);
+                cmd.Parameters.AddWithValue("@start", start);
+                cmd.Parameters.AddWithValue("@end", end);
                 cmd.Parameters.AddWithValue("@lastUpdateBy", "admin"); // Assuming lastUpdateBy is "admin" for now
                 cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
 

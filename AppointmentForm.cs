@@ -48,6 +48,8 @@ namespace c9692
                     MySqlDataAdapter adapter = new MySqlDataAdapter(query, conn);
                     DataTable dataTable = new DataTable();
                     adapter.Fill(dataTable);
+
+                    // Directly bind the data without converting times
                     dataGridViewAppointments.DataSource = dataTable;
                 }
             }
@@ -131,6 +133,59 @@ namespace c9692
             CalendarForm calendarForm = new CalendarForm();
             calendarForm.ShowDialog();
         }
-    }
+        private bool isAdjustedToLocal = false; // Tracks if times are adjusted to local
+        private bool isRevertedToOriginal = true; // Tracks if times are reverted to UTC
+        private void buttonAdjustToLocal_Click(object sender, EventArgs e)
+        {
+            if (isAdjustedToLocal) return; // Prevent multiple conversions to local
 
+            foreach (DataGridViewRow row in dataGridViewAppointments.Rows)
+            {
+                if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null &&
+                    !string.IsNullOrWhiteSpace(row.Cells["Start"].Value.ToString()) &&
+                    !string.IsNullOrWhiteSpace(row.Cells["End"].Value.ToString()))
+                {
+                    DateTime originalStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Utc);
+                    DateTime originalEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Utc);
+
+                    // Convert to local timezone
+                    DateTime localStart = TimeZoneInfo.ConvertTimeFromUtc(originalStart, TimeZoneInfo.Local);
+                    DateTime localEnd = TimeZoneInfo.ConvertTimeFromUtc(originalEnd, TimeZoneInfo.Local);
+
+                    row.Cells["Start"].Value = localStart;
+                    row.Cells["End"].Value = localEnd;
+                }
+            }
+
+            isAdjustedToLocal = true;
+            isRevertedToOriginal = false;
+        }
+
+        private void buttonRevertToOriginal_Click(object sender, EventArgs e)
+        {
+            if (isRevertedToOriginal) return; // Prevent multiple conversions to UTC
+
+            foreach (DataGridViewRow row in dataGridViewAppointments.Rows)
+            {
+                if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null &&
+                    !string.IsNullOrWhiteSpace(row.Cells["Start"].Value.ToString()) &&
+                    !string.IsNullOrWhiteSpace(row.Cells["End"].Value.ToString()))
+                {
+                    DateTime localStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Local);
+                    DateTime localEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Local);
+
+                    // Convert back to UTC
+                    DateTime originalStart = TimeZoneInfo.ConvertTimeToUtc(localStart, TimeZoneInfo.Local);
+                    DateTime originalEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, TimeZoneInfo.Local);
+
+                    row.Cells["Start"].Value = originalStart;
+                    row.Cells["End"].Value = originalEnd;
+                }
+            }
+
+            isRevertedToOriginal = true;
+            isAdjustedToLocal = false;
+        }
+
+    }
 }

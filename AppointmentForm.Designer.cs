@@ -9,6 +9,8 @@ namespace c9692
         private System.Windows.Forms.Button buttonUpdate;
         private System.Windows.Forms.Button buttonDelete;
         private System.Windows.Forms.Button buttonCalendar;
+        private System.Windows.Forms.Button buttonAdjustToLocal;
+        private System.Windows.Forms.Button buttonRevertToOriginal;
         private System.Windows.Forms.TextBox textBoxInstruction;
 
         protected override void Dispose(bool disposing)
@@ -27,6 +29,8 @@ namespace c9692
             this.buttonUpdate = new System.Windows.Forms.Button();
             this.buttonDelete = new System.Windows.Forms.Button();
             this.buttonCalendar = new System.Windows.Forms.Button();
+            this.buttonAdjustToLocal = new System.Windows.Forms.Button();
+            this.buttonRevertToOriginal = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAppointments)).BeginInit();
             this.SuspendLayout();
             // 
@@ -79,9 +83,31 @@ namespace c9692
             this.buttonCalendar.UseVisualStyleBackColor = true;
             this.buttonCalendar.Click += new System.EventHandler(this.buttonCalendar_Click);
             // 
+            // buttonAdjustToLocal
+            // 
+            this.buttonAdjustToLocal.Location = new System.Drawing.Point(336, 450);
+            this.buttonAdjustToLocal.Name = "buttonAdjustToLocal";
+            this.buttonAdjustToLocal.Size = new System.Drawing.Size(150, 23);
+            this.buttonAdjustToLocal.TabIndex = 5;
+            this.buttonAdjustToLocal.Text = "Adjust to Local Timezone";
+            this.buttonAdjustToLocal.UseVisualStyleBackColor = true;
+            this.buttonAdjustToLocal.Click += new System.EventHandler(this.buttonAdjustToLocal_Click);
+            // 
+            // buttonRevertToOriginal
+            // 
+            this.buttonRevertToOriginal.Location = new System.Drawing.Point(492, 450);
+            this.buttonRevertToOriginal.Name = "buttonRevertToOriginal";
+            this.buttonRevertToOriginal.Size = new System.Drawing.Size(150, 23);
+            this.buttonRevertToOriginal.TabIndex = 6;
+            this.buttonRevertToOriginal.Text = "Revert to Original Timezone";
+            this.buttonRevertToOriginal.UseVisualStyleBackColor = true;
+            this.buttonRevertToOriginal.Click += new System.EventHandler(this.buttonRevertToOriginal_Click);
+            // 
             // AppointmentForm
             // 
             this.ClientSize = new System.Drawing.Size(800, 500);
+            this.Controls.Add(this.buttonRevertToOriginal);
+            this.Controls.Add(this.buttonAdjustToLocal);
             this.Controls.Add(this.textBoxInstruction);
             this.Controls.Add(this.buttonCalendar);
             this.Controls.Add(this.buttonDelete);
