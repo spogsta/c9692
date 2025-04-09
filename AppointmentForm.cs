@@ -139,18 +139,21 @@ namespace c9692
         {
             if (isAdjustedToLocal) return; // Prevent multiple conversions to local
 
+            TimeZoneInfo easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+
             foreach (DataGridViewRow row in dataGridViewAppointments.Rows)
             {
                 if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null &&
                     !string.IsNullOrWhiteSpace(row.Cells["Start"].Value.ToString()) &&
                     !string.IsNullOrWhiteSpace(row.Cells["End"].Value.ToString()))
                 {
-                    DateTime originalStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Utc);
-                    DateTime originalEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Utc);
+                    // Specify that the times are in Eastern Time
+                    DateTime easternStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Unspecified);
+                    DateTime easternEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Unspecified);
 
                     // Convert to local timezone
-                    DateTime localStart = TimeZoneInfo.ConvertTimeFromUtc(originalStart, TimeZoneInfo.Local);
-                    DateTime localEnd = TimeZoneInfo.ConvertTimeFromUtc(originalEnd, TimeZoneInfo.Local);
+                    DateTime localStart = TimeZoneInfo.ConvertTime(easternStart, easternTimeZone, TimeZoneInfo.Local);
+                    DateTime localEnd = TimeZoneInfo.ConvertTime(easternEnd, easternTimeZone, TimeZoneInfo.Local);
 
                     row.Cells["Start"].Value = localStart;
                     row.Cells["End"].Value = localEnd;
@@ -163,26 +166,10 @@ namespace c9692
 
         private void buttonRevertToOriginal_Click(object sender, EventArgs e)
         {
-            if (isRevertedToOriginal) return; // Prevent multiple conversions to UTC
+            // Reload the appointment data from the database
+            LoadAppointmentData();
 
-            foreach (DataGridViewRow row in dataGridViewAppointments.Rows)
-            {
-                if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null &&
-                    !string.IsNullOrWhiteSpace(row.Cells["Start"].Value.ToString()) &&
-                    !string.IsNullOrWhiteSpace(row.Cells["End"].Value.ToString()))
-                {
-                    DateTime localStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Local);
-                    DateTime localEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Local);
-
-                    // Convert back to UTC
-                    DateTime originalStart = TimeZoneInfo.ConvertTimeToUtc(localStart, TimeZoneInfo.Local);
-                    DateTime originalEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, TimeZoneInfo.Local);
-
-                    row.Cells["Start"].Value = originalStart;
-                    row.Cells["End"].Value = originalEnd;
-                }
-            }
-
+            // Reset the flags to their initial state
             isRevertedToOriginal = true;
             isAdjustedToLocal = false;
         }
