@@ -45,13 +45,14 @@ namespace c9692
             // 
             // textBoxInstruction
             // 
+            this.textBoxInstruction.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.textBoxInstruction.Location = new System.Drawing.Point(12, 415);
             this.textBoxInstruction.Name = "textBoxInstruction";
-            this.textBoxInstruction.Size = new System.Drawing.Size(776, 23);
-            this.textBoxInstruction.TabIndex = 1;
-            this.textBoxInstruction.Text = "Please use the customer form to add an appointment by selecting a customer and then clicking \"Add customer Appointment\".";
             this.textBoxInstruction.ReadOnly = true;
-            this.textBoxInstruction.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.textBoxInstruction.Size = new System.Drawing.Size(776, 15);
+            this.textBoxInstruction.TabIndex = 1;
+            this.textBoxInstruction.Text = "Please use the customer form to add an appointment by selecting a customer and th" +
+    "en clicking \"Add customer Appointment\". Times are displayed in local time.";
             // 
             // buttonUpdate
             // 
@@ -87,7 +88,7 @@ namespace c9692
             // 
             this.buttonAdjustToLocal.Location = new System.Drawing.Point(336, 450);
             this.buttonAdjustToLocal.Name = "buttonAdjustToLocal";
-            this.buttonAdjustToLocal.Size = new System.Drawing.Size(150, 23);
+            this.buttonAdjustToLocal.Size = new System.Drawing.Size(194, 23);
             this.buttonAdjustToLocal.TabIndex = 5;
             this.buttonAdjustToLocal.Text = "Adjust to Local Timezone";
             this.buttonAdjustToLocal.UseVisualStyleBackColor = true;
@@ -95,11 +96,11 @@ namespace c9692
             // 
             // buttonRevertToOriginal
             // 
-            this.buttonRevertToOriginal.Location = new System.Drawing.Point(492, 450);
+            this.buttonRevertToOriginal.Location = new System.Drawing.Point(536, 450);
             this.buttonRevertToOriginal.Name = "buttonRevertToOriginal";
             this.buttonRevertToOriginal.Size = new System.Drawing.Size(150, 23);
             this.buttonRevertToOriginal.TabIndex = 6;
-            this.buttonRevertToOriginal.Text = "Revert to Original Timezone";
+            this.buttonRevertToOriginal.Text = "Revert to EST";
             this.buttonRevertToOriginal.UseVisualStyleBackColor = true;
             this.buttonRevertToOriginal.Click += new System.EventHandler(this.buttonRevertToOriginal_Click);
             // 
@@ -119,6 +120,7 @@ namespace c9692
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAppointments)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
     }
 }

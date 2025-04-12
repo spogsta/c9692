@@ -17,6 +17,8 @@ namespace c9692
         private void AppointmentForm_Load(object sender, EventArgs e)
         {
             LoadAppointmentData();
+            buttonAdjustToLocal.Enabled = false; // Already in local time
+            buttonRevertToOriginal.Enabled = true; // Revert is available
         }
 
         private void LoadAppointmentData()
@@ -49,7 +51,22 @@ namespace c9692
                     DataTable dataTable = new DataTable();
                     adapter.Fill(dataTable);
 
-                    // Directly bind the data without converting times
+                    // Convert times from EST to local time zone for display
+                    TimeZoneInfo estTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        if (row["Start"] != DBNull.Value && row["End"] != DBNull.Value)
+                        {
+                            // Interpret the stored times as EST
+                            DateTime estStart = TimeZoneInfo.ConvertTimeToUtc(Convert.ToDateTime(row["Start"]), estTimeZone);
+                            DateTime estEnd = TimeZoneInfo.ConvertTimeToUtc(Convert.ToDateTime(row["End"]), estTimeZone);
+
+                            // Convert to local time zone
+                            row["Start"] = TimeZoneInfo.ConvertTimeFromUtc(estStart, TimeZoneInfo.Local);
+                            row["End"] = TimeZoneInfo.ConvertTimeFromUtc(estEnd, TimeZoneInfo.Local);
+                        }
+                    }
+
                     dataGridViewAppointments.DataSource = dataTable;
                 }
             }
@@ -133,46 +150,45 @@ namespace c9692
             CalendarForm calendarForm = new CalendarForm();
             calendarForm.ShowDialog();
         }
-        private bool isAdjustedToLocal = false; // Tracks if times are adjusted to local
-        private bool isRevertedToOriginal = true; // Tracks if times are reverted to UTC
+
         private void buttonAdjustToLocal_Click(object sender, EventArgs e)
         {
-            if (isAdjustedToLocal) return; // Prevent multiple conversions to local
-
             TimeZoneInfo easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
 
             foreach (DataGridViewRow row in dataGridViewAppointments.Rows)
             {
-                if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null &&
-                    !string.IsNullOrWhiteSpace(row.Cells["Start"].Value.ToString()) &&
-                    !string.IsNullOrWhiteSpace(row.Cells["End"].Value.ToString()))
+                if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null)
                 {
-                    // Specify that the times are in Eastern Time
                     DateTime easternStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Unspecified);
                     DateTime easternEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Unspecified);
 
-                    // Convert to local timezone
-                    DateTime localStart = TimeZoneInfo.ConvertTime(easternStart, easternTimeZone, TimeZoneInfo.Local);
-                    DateTime localEnd = TimeZoneInfo.ConvertTime(easternEnd, easternTimeZone, TimeZoneInfo.Local);
-
-                    row.Cells["Start"].Value = localStart;
-                    row.Cells["End"].Value = localEnd;
+                    row.Cells["Start"].Value = TimeZoneInfo.ConvertTime(easternStart, easternTimeZone, TimeZoneInfo.Local);
+                    row.Cells["End"].Value = TimeZoneInfo.ConvertTime(easternEnd, easternTimeZone, TimeZoneInfo.Local);
                 }
             }
 
-            isAdjustedToLocal = true;
-            isRevertedToOriginal = false;
+            buttonAdjustToLocal.Enabled = false; // Already in local time
+            buttonRevertToOriginal.Enabled = true; // Revert is now available
         }
 
         private void buttonRevertToOriginal_Click(object sender, EventArgs e)
         {
-            // Reload the appointment data from the database
-            LoadAppointmentData();
+            TimeZoneInfo easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
 
-            // Reset the flags to their initial state
-            isRevertedToOriginal = true;
-            isAdjustedToLocal = false;
+            foreach (DataGridViewRow row in dataGridViewAppointments.Rows)
+            {
+                if (row.Cells["Start"]?.Value != null && row.Cells["End"]?.Value != null)
+                {
+                    DateTime localStart = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["Start"].Value), DateTimeKind.Unspecified);
+                    DateTime localEnd = DateTime.SpecifyKind(Convert.ToDateTime(row.Cells["End"].Value), DateTimeKind.Unspecified);
+
+                    row.Cells["Start"].Value = TimeZoneInfo.ConvertTime(localStart, TimeZoneInfo.Local, easternTimeZone);
+                    row.Cells["End"].Value = TimeZoneInfo.ConvertTime(localEnd, TimeZoneInfo.Local, easternTimeZone);
+                }
+            }
+
+            buttonAdjustToLocal.Enabled = true; // Adjust to local is now available
+            buttonRevertToOriginal.Enabled = false; // Already in original time
         }
-
     }
 }

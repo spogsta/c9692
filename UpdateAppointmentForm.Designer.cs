@@ -31,6 +31,7 @@ namespace c9692
             this.labelStartMinute = new System.Windows.Forms.Label();
             this.labelEndHour = new System.Windows.Forms.Label();
             this.labelEndMinute = new System.Windows.Forms.Label();
+            this.labelTimeInfo = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownStartHour)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownStartMinute)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEndHour)).BeginInit();
@@ -259,9 +260,19 @@ namespace c9692
             this.labelEndMinute.TabIndex = 24;
             this.labelEndMinute.Text = "Minute";
             // 
+            // labelTimeInfo
+            // 
+            this.labelTimeInfo.AutoSize = true;
+            this.labelTimeInfo.Location = new System.Drawing.Point(12, 270);
+            this.labelTimeInfo.Name = "labelTimeInfo";
+            this.labelTimeInfo.Size = new System.Drawing.Size(435, 16);
+            this.labelTimeInfo.TabIndex = 25;
+            this.labelTimeInfo.Text = "Times are in 24 hour format entered in your local time - converted to EST.";
+            // 
             // UpdateAppointmentForm
             // 
-            this.ClientSize = new System.Drawing.Size(434, 261);
+            this.ClientSize = new System.Drawing.Size(540, 310);
+            this.Controls.Add(this.labelTimeInfo);
             this.Controls.Add(this.labelEndMinute);
             this.Controls.Add(this.labelEndHour);
             this.Controls.Add(this.labelStartMinute);
@@ -323,5 +334,6 @@ namespace c9692
         private System.Windows.Forms.Label labelStartMinute;
         private System.Windows.Forms.Label labelEndHour;
         private System.Windows.Forms.Label labelEndMinute;
+        private System.Windows.Forms.Label labelTimeInfo;
     }
 }

@@ -47,36 +47,51 @@ namespace c9692
                         textBoxType.Text = reader["type"].ToString();
                         textBoxUrl.Text = reader["url"].ToString();
 
-                        // Directly set the DateTime values without timezone conversion
-                        DateTime start = Convert.ToDateTime(reader["start"]);
-                        DateTime end = Convert.ToDateTime(reader["end"]);
+                        // Convert stored EST times to local time for display
+                        TimeZoneInfo estTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                        DateTime estStart = TimeZoneInfo.ConvertTimeToUtc(Convert.ToDateTime(reader["start"]), estTimeZone);
+                        DateTime estEnd = TimeZoneInfo.ConvertTimeToUtc(Convert.ToDateTime(reader["end"]), estTimeZone);
 
-                        dateTimePickerStart.Value = start;
-                        dateTimePickerEnd.Value = end;
+                        DateTime localStart = TimeZoneInfo.ConvertTimeFromUtc(estStart, TimeZoneInfo.Local);
+                        DateTime localEnd = TimeZoneInfo.ConvertTimeFromUtc(estEnd, TimeZoneInfo.Local);
 
-                        numericUpDownStartHour.Value = start.Hour;
-                        numericUpDownStartMinute.Value = start.Minute;
-                        numericUpDownEndHour.Value = end.Hour;
-                        numericUpDownEndMinute.Value = end.Minute;
+                        dateTimePickerStart.Value = localStart;
+                        dateTimePickerEnd.Value = localEnd;
+
+                        numericUpDownStartHour.Value = localStart.Hour;
+                        numericUpDownStartMinute.Value = localStart.Minute;
+                        numericUpDownEndHour.Value = localEnd.Hour;
+                        numericUpDownEndMinute.Value = localEnd.Minute;
                     }
                 }
             }
         }
+
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            // Get times directly from the controls
-            DateTime start = dateTimePickerStart.Value.Date.AddHours((double)numericUpDownStartHour.Value).AddMinutes((double)numericUpDownStartMinute.Value);
-            DateTime end = dateTimePickerEnd.Value.Date.AddHours((double)numericUpDownEndHour.Value).AddMinutes((double)numericUpDownEndMinute.Value);
+            // Get times entered by the user in local time
+            DateTime localStart = dateTimePickerStart.Value.Date
+                .AddHours((double)numericUpDownStartHour.Value)
+                .AddMinutes((double)numericUpDownStartMinute.Value);
+            DateTime localEnd = dateTimePickerEnd.Value.Date
+                .AddHours((double)numericUpDownEndHour.Value)
+                .AddMinutes((double)numericUpDownEndMinute.Value);
 
-            // Check if the appointment is within business hours
-            if (!IsWithinBusinessHours(start) || !IsWithinBusinessHours(end))
+            // Convert local times to Eastern Standard Time (EST)
+            TimeZoneInfo localTimeZone = TimeZoneInfo.Local;
+            TimeZoneInfo estTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            DateTime estStart = TimeZoneInfo.ConvertTime(localStart, localTimeZone, estTimeZone);
+            DateTime estEnd = TimeZoneInfo.ConvertTime(localEnd, localTimeZone, estTimeZone);
+
+            // Validate business hours in EST
+            if (!IsWithinBusinessHours(estStart) || !IsWithinBusinessHours(estEnd))
             {
                 MessageBox.Show("Appointments must be scheduled during business hours (9:00 a.m. to 5:00 p.m., Monday–Friday, EST).");
                 return;
             }
 
-            // Check if the appointment overlaps with an existing one
-            if (IsOverlappingAppointment(start, end))
+            // Check for overlapping appointments in EST
+            if (IsOverlappingAppointment(estStart, estEnd))
             {
                 MessageBox.Show("The appointment overlaps with an existing appointment. Please choose a different time.");
                 return;
@@ -96,8 +111,8 @@ namespace c9692
                 cmd.Parameters.AddWithValue("@contact", textBoxContact.Text);
                 cmd.Parameters.AddWithValue("@type", textBoxType.Text);
                 cmd.Parameters.AddWithValue("@url", textBoxUrl.Text);
-                cmd.Parameters.AddWithValue("@start", start);
-                cmd.Parameters.AddWithValue("@end", end);
+                cmd.Parameters.AddWithValue("@start", estStart);
+                cmd.Parameters.AddWithValue("@end", estEnd);
                 cmd.Parameters.AddWithValue("@lastUpdateBy", "admin"); // Assuming lastUpdateBy is "admin" for now
                 cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
 
@@ -112,13 +127,9 @@ namespace c9692
             }
         }
 
-        private bool IsWithinBusinessHours(DateTime dateTime)
+        private bool IsWithinBusinessHours(DateTime estDateTime)
         {
-            // Convert to Eastern Standard Time
-            TimeZoneInfo est = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-            DateTime estDateTime = TimeZoneInfo.ConvertTime(dateTime, est);
-
-            // Check if within business hours
+            // Check if within business hours in EST
             if (estDateTime.DayOfWeek == DayOfWeek.Saturday || estDateTime.DayOfWeek == DayOfWeek.Sunday)
                 return false;
 
@@ -128,7 +139,7 @@ namespace c9692
             return estDateTime.TimeOfDay >= startBusinessHours && estDateTime.TimeOfDay <= endBusinessHours;
         }
 
-        private bool IsOverlappingAppointment(DateTime start, DateTime end)
+        private bool IsOverlappingAppointment(DateTime estStart, DateTime estEnd)
         {
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
@@ -140,8 +151,8 @@ namespace c9692
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@appointmentId", appointmentId);
-                cmd.Parameters.AddWithValue("@start", start);
-                cmd.Parameters.AddWithValue("@end", end);
+                cmd.Parameters.AddWithValue("@start", estStart);
+                cmd.Parameters.AddWithValue("@end", estEnd);
 
                 conn.Open();
                 int count = Convert.ToInt32(cmd.ExecuteScalar());
